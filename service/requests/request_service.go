@@ -2,27 +2,20 @@ package requests
 
 import (
 	"context"
+	"errors"
 	"github.com/skateboard/tls-client/client"
 	"github.com/skateboard/tls-client/helper"
 	requestProto "github.com/skateboard/tls-client/service/proto"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
 )
 
 type ServiceServer struct {
 	requestProto.UnimplementedRequestServiceServer
 }
 
-
 func (s ServiceServer) Request(ctx context.Context, request *requestProto.NewRequest) (*requestProto.Response, error) {
-	tlsClient := client.CreateClient(request.GetProxy())
-	if tlsClient == nil {
-		return nil, status.Error(codes.Internal, "failed to create tls client")
-	}
-
 	browser := client.Browsers[request.GetBrowser()]
 	if browser.UserAgent == "" {
-		return nil, status.Error(codes.Internal, "failed to find browser fingerprint!")
+		return nil, errors.New("browser fingerprint not found")
 	}
 
 	requester := client.Requester{
@@ -35,11 +28,11 @@ func (s ServiceServer) Request(ctx context.Context, request *requestProto.NewReq
 	case "GET":
 		response, err := requester.GET(request.Url)
 		if err != nil {
-			return nil, status.Error(codes.Internal, err.Error())
+			return nil, err
 		}
 		bodyBytes := helper.GetBodyBytes(response)
 
-		var headers map[string]string
+		headers := make(map[string]string)
 		for name, values := range response.Header {
 			for _, value := range values {
 				headers[name] = value
@@ -48,14 +41,15 @@ func (s ServiceServer) Request(ctx context.Context, request *requestProto.NewReq
 
 		//#todo: add cookie parsing
 
+
 		return &requestProto.Response{
-			Status:  response.Status,
+			Status:  int32(response.StatusCode),
 			Body:    string(bodyBytes),
 			Headers: headers,
 			Cookies: nil,
 		}, nil
 	}
-	
-	
-	return nil, status.Errorf(codes.Unimplemented, "failed to find method %s", request.Method)
+
+	return nil, errors.New("failed to find method!")
+
 }
