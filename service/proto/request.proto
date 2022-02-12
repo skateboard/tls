@@ -5,17 +5,18 @@ package accounts;
 option go_package = "github.com/skateboard/tls-client/service/requests";
 
 message NewRequest {
-  string method = 1;
-  string url = 2;
-  string body = 3;
+  string browser = 1;
+  string method = 2;
+  string url = 3;
+  string body = 4;
 
-  map<string, string> headers = 4;
-  map<string, string> headerOrder = 5;
-  map<string, string> query = 6;
+  map<string, string> headers = 5;
+  map<string, string> headerOrder = 6;
+  map<string, string> query = 7;
 
-  map<string, string> cookies = 7;
+  map<string, string> cookies = 8;
 
-  optional string proxy = 8;
+  optional string proxy = 9;
 }
 
 message Response {

@@ -2,6 +2,8 @@ package service
 
 import (
 	"fmt"
+	requestProto "github.com/skateboard/tls-client/service/proto"
+	"github.com/skateboard/tls-client/service/requests"
 	"google.golang.org/grpc"
 	"log"
 	"net"
@@ -14,6 +16,7 @@ func StartService() {
 	}
 
 	grpcServer := grpc.NewServer()
+	requestProto.RegisterRequestServiceServer(grpcServer, &requests.ServiceServer{})
 
 	fmt.Println("Serving grpc service:", listen.Addr().String())
 	if err = grpcServer.Serve(listen); err != nil {

@@ -19,10 +19,17 @@ func (s ServiceServer) Request(ctx context.Context, request *requestProto.NewReq
 	if tlsClient == nil {
 		return nil, status.Error(codes.Internal, "failed to create tls client")
 	}
-	
-	requester := client.Requester{
-		Client: tlsClient,
+
+	browser := client.Browsers[request.GetBrowser()]
+	if browser.UserAgent == "" {
+		return nil, status.Error(codes.Internal, "failed to find browser fingerprint!")
 	}
+
+	requester := client.Requester{
+		Browser: browser,
+		Proxy:   request.GetProxy(),
+	}
+	requester.Initialize()
 
 	switch request.Method {
 	case "GET":
@@ -38,6 +45,8 @@ func (s ServiceServer) Request(ctx context.Context, request *requestProto.NewReq
 				headers[name] = value
 			}
 		}
+
+		//#todo: add cookie parsing
 
 		return &requestProto.Response{
 			Status:  response.Status,

@@ -1,9 +1,24 @@
 package client
 
-import "net/http"
+import (
+	cclient "github.com/Humphryyy/cclientwtf"
+	"net/http"
+)
 
 type Requester struct {
-	Client *http.Client
+	Browser Browser
+	Proxy 	string
+
+	Client http.Client
+}
+
+func (r *Requester) Initialize()  {
+	client, err := cclient.NewClient(r.Browser.ClientID, r.Proxy)
+	if err != nil {
+		return
+	}
+
+	r.Client = client
 }
 
 func (r Requester) request(method string, url string, body []byte) ([]byte, error) {
